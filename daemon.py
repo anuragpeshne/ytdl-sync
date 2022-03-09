@@ -65,9 +65,8 @@ def sync_item(config):
 
         print("Will delete files: ", ','.join(to_delete_files))
         for oldfile in to_delete_files:
-            os.remove(oldfile)
+            os.remove(os.path.join(playlist_path, oldfile))
 
 
 config = read_config()
 sync_item(config)
-clean_old_items(config)
