@@ -42,24 +42,31 @@ def sync_item(config):
 
         existing_files = os.listdir(playlist_path)
         to_download_video_ids = []
+        to_delete_files = existing_files
         for to_sync_video_id in to_sync_video_ids:
             found = False
             for existing_file in existing_files:
                 if to_sync_video_id in existing_file:
                     found = True
+                    to_delete_files.remove(existing_file)
             if not found:
                 to_download_video_ids.append(to_sync_video_id)
 
         print("Will download files: ", ','.join(to_download_video_ids))
 
         for video_id in to_download_video_ids:
-            ydl_opts = {'P': playlist_path}
+            ydl_opts = {
+                'outtmpl': playlist_path + '/' + '%(upload_date>%Y-%m-%d)s %(title)s [%(id)s].%(ext)s',
+                'simulate': False,
+                'prefer_free_formats': True
+            }
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download(['https://www.youtube.com/watch?v=' + video_id])
 
-def clean_old_items(config):
-    print("TODO Clean old items")
-    pass
+        print("Will delete files: ", ','.join(to_delete_files))
+        for oldfile in to_delete_files:
+            os.remove(oldfile)
+
 
 config = read_config()
 sync_item(config)
