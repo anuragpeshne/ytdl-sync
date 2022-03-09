@@ -1,0 +1,11 @@
+{
+  "video_store_root": "./videos/",
+  "playlists":
+  [
+    {
+      "url": "https://www.youtube.com/playlist?list=sample",
+      "max_history": 5,
+      "name": "sample"
+    }
+  ]
+}
