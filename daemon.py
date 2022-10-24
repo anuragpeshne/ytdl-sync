@@ -23,7 +23,7 @@ def read_config():
 
 def sync_item(config):
     root = config['video_store_root']
-    
+
     for playlist in config['playlists']:
         print("GET", playlist['url'])
         response = requests.get(playlist['url'])
@@ -39,7 +39,7 @@ def sync_item(config):
         unique_video_ids = get_unique_ordered(video_ids + video_ids_search)
         to_sync_video_ids = unique_video_ids[:playlist['max_history']]
         print("unique video ids parsed: ", len(unique_video_ids))
-        
+
         playlist_path = os.path.join(root, playlist['name'])
         if not os.path.exists(playlist_path):
             os.makedirs(playlist_path)
