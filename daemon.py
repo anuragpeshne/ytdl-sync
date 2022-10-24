@@ -32,7 +32,11 @@ def sync_item(config):
         video_ids_str = re.findall("videoId\":\"...........\"", page)
         video_ids = [video_id_str.split(":")[1].strip('"') for video_id_str in video_ids_str]
 
-        unique_video_ids = get_unique_ordered(video_ids)
+        video_ids_search_str = re.findall("/watch?v=...........", page)
+        video_ids_search = [url_str.split("=")[1] for url_str in video_ids_search_str]
+
+        print(video_ids_search)
+        unique_video_ids = get_unique_ordered(video_ids + video_ids_search)
         to_sync_video_ids = unique_video_ids[:playlist['max_history']]
         print("unique video ids parsed: ", len(unique_video_ids))
         
