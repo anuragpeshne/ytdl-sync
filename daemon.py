@@ -21,6 +21,18 @@ def read_config():
         config = json.load(f)
     return config
 
+def try_get_yt_playlist(page):
+    video_ids_str = re.findall("videoId\":\"...........\"", page)
+    return [video_id_str.split(":")[1].strip('"') for video_id_str in video_ids_str]
+
+def try_get_yt_search(page):
+    video_ids_search_str = re.findall("/watch?v=...........", page)
+    return [url_str.split("=")[1] for url_str in video_ids_search_str]
+
+def try_get_zee5(page):
+    video_ids = re.findall("href=\"(.*)\" class=\"noSelect content\" data-minutely", page)
+    return ["https://www.zee5.com/global" + vids for vids in video_ids]
+
 def sync_item(config):
     root = config['video_store_root']
 
@@ -29,43 +41,52 @@ def sync_item(config):
         response = requests.get(playlist['url'])
         page = response.text
 
-        video_ids_str = re.findall("videoId\":\"...........\"", page)
-        video_ids = [video_id_str.split(":")[1].strip('"') for video_id_str in video_ids_str]
+        video_urls = []
+        if "youtube" in playlist['url']:
+            yt_playlist_ids = try_get_yt_playlist(page)
+            yt_search_ids = try_get_yt_search(page)
+            video_urls.extend(
+                    ['https://www.youtube.com/watch?v=' + id_
+                     for id_ in yt_playlist_ids])
+            video_urls.extend(
+                    ['https://www.youtube.com/watch?v=' + id_
+                     for id_ in yt_search_ids])
+        elif "zee5" in playlist["url"]:
+            zee_ids = try_get_zee5(page)
+            video_urls.extend(zee_ids)
 
-        video_ids_search_str = re.findall("/watch?v=...........", page)
-        video_ids_search = [url_str.split("=")[1] for url_str in video_ids_search_str]
-
-        print(video_ids_search)
-        unique_video_ids = get_unique_ordered(video_ids + video_ids_search)
-        to_sync_video_ids = unique_video_ids[:playlist['max_history']]
-        print("unique video ids parsed: ", len(unique_video_ids))
+        unique_video_urls = get_unique_ordered(video_urls)
+        to_sync_video_urls = unique_video_urls[:playlist['max_history']]
 
         playlist_path = os.path.join(root, playlist['name'])
         if not os.path.exists(playlist_path):
             os.makedirs(playlist_path)
 
         existing_files = os.listdir(playlist_path)
-        to_download_video_ids = []
+        print(existing_files)
+        print(to_sync_video_urls)
+        to_download_video_urls = []
         to_delete_files = existing_files
-        for to_sync_video_id in to_sync_video_ids:
+        for to_sync_video_url in to_sync_video_urls:
             found = False
             for existing_file in existing_files:
-                if to_sync_video_id in existing_file:
+                existing_id = re.findall("\[(.*)\]", existing_file)[0]
+                if existing_id in to_sync_video_url:
                     found = True
                     to_delete_files.remove(existing_file)
             if not found:
-                to_download_video_ids.append(to_sync_video_id)
+                to_download_video_urls.append(to_sync_video_url)
 
-        print("Will download files: ", ','.join(to_download_video_ids))
+        print("Will download files: ", ','.join(to_download_video_urls))
 
-        for video_id in to_download_video_ids:
+        for video_url in to_download_video_urls:
             ydl_opts = {
                 'outtmpl': playlist_path + '/' + '%(upload_date>%Y-%m-%d)s %(title)s [%(id)s].%(ext)s',
                 'simulate': False,
                 'prefer_free_formats': True
             }
             with YoutubeDL(ydl_opts) as ydl:
-                ydl.download(['https://www.youtube.com/watch?v=' + video_id])
+                ydl.download([video_url])
 
         print("Will delete files: ", ','.join(to_delete_files))
         for oldfile in to_delete_files:
