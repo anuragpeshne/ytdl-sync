@@ -2,6 +2,7 @@
 
 import json
 import os
+import pathlib
 import requests
 from yt_dlp import YoutubeDL
 
@@ -17,7 +18,7 @@ def get_unique_ordered(items):
     return unique_items
 
 def read_config():
-    with open('config.json') as f:
+    with open(str(pathlib.Path(__file__).parent.absolute()) + 'config.json') as f:
         config = json.load(f)
     return config
 
