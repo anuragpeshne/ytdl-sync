@@ -38,7 +38,7 @@ def sync_item(config):
     root = config['video_store_root']
 
     for playlist in config['playlists']:
-        if playlist['ignore']:
+        if 'ignore' in playlist:
             continue
 
         print("GET", playlist['url'])
