@@ -87,7 +87,8 @@ def sync_item(config):
             ydl_opts = {
                 'outtmpl': playlist_path + '/' + '%(upload_date>%Y-%m-%d)s %(title)s [%(id)s].%(ext)s',
                 'simulate': False,
-                'prefer_free_formats': True
+                'prefer_free_formats': True,
+                'res': 1080,
             }
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([video_url])
