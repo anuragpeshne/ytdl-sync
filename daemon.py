@@ -63,6 +63,8 @@ def sync_item(config):
         to_sync_video_urls = unique_video_urls[:playlist['max_history']]
 
         playlist_path = os.path.join(root, playlist['name'])
+        if 'video_store_root' in playlist:
+            playlist_path = playlist['video_store_root']
         if not os.path.exists(playlist_path):
             os.makedirs(playlist_path)
 
